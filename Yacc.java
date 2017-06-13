@@ -7,7 +7,7 @@ public class Yacc {
     private ArrayList<ArrayList<Node>> child = new ArrayList();
     public Node (String name, int type) {
       this.name = name;
-      this.type = type;
+      this.type = type; // 0: 非终结符, 1: 终结符
     }
     public String getName () {
       return this.name;
@@ -15,18 +15,19 @@ public class Yacc {
     public int getType () {
       return this.type;
     }
-    public void split (String name, String childs) {
-      System.out.println(name.replaceAll("<|>", ""));
-      System.out.println(childs);
+    public void split (String childs) {
       String[] childArray = childs.split("\\|");
       for(int i = 0; i < childArray.length; i++) {
-        System.out.println(childArray[i]);
+        String[] test = childArray[i].split("><");
+        for(int j = 0; j < test.length; j++) {
+          test[j] = test[j].replaceAll("<|>", ""));
+        }
       }
     }
   }
   public static void main(String[] args) {
-    String text = "<postal-address> ::= <name-part> | <street-address> <zip-part>";
+    String text = "<postal-address> ::= <name-part> | <street-address> <zip-part> | \"\"";
     String[] splitArray = text.replaceAll(" ", "").split("::=");
-    new Node("yacc", 2).split(splitArray[0], splitArray[1]);
+    new Node(splitArray[0].replaceAll("<|>", ""), 1).split(splitArray[1]);
   }
 }

@@ -50,10 +50,10 @@ public class Yacc {
       for (int i = 0; i < childs.size(); i++) {
         for (int j = 0; j < childs.get(i).length; j++) {
           if (this.isTerminator(childs.get(i)[j])) {
-            if (childs.get(i)[j] != "ε") {
+            // if (childs.get(i)[j] != "ε") {
               firstSet.add(childs.get(i)[j]);
               break;
-            }
+            // }
           } else {
             HashSet<String> tempFirstSet = this.getFirstSet(childs.get(i)[j]);
             Iterator itr = tempFirstSet.iterator();
@@ -172,22 +172,42 @@ public class Yacc {
         "<zip-part> ::= <town-name> \",\" <state-code> <ZIP-code> <EOL>",
         "<opt-suffix-part> ::= \"Sr.\" | \"Jr.\" | <roman-numeral> | \"\"", "<opt-apt-num> ::= <apt-num> | \"\"" };
     Analysis test = new Analysis(texts);
-    // HashMap<String, ArrayList<String>> a = test.setFirstSet();
+    // HashMap<String, HashSet<String>> a = test.setFirstSet();
     // Iterator iter = a.keySet().iterator();
     // while(iter.hasNext()) {
     //   String key = iter.next().toString();
     //   System.out.println(key + " : ");
-    //   ArrayList<String> firstSet = a.get(key);
-    //   for(int i = 0; i < firstSet.size(); i++) {
-    //     System.out.print(firstSet.get(i) + " , ");
+    //   Iterator _itr = a.get(key).iterator();
+    //   while(_itr.hasNext()) {
+    //     System.out.print(_itr.next().toString() + " , ");
     //   }
     //   System.out.println();
     // }
+
+    // HashSet<String> a = test.getFirstSet("opt-apt-num");
+    // Iterator itr = a.iterator();
+    // while(itr.hasNext()) {
+    //   System.out.println(itr.next().toString());
+    // }
+
     test.setFirstSet();
-    HashSet<String> a = test.getFollowSet("personal-part");
-    Iterator itr = a.iterator();
-    while(itr.hasNext()) {
-      System.out.println(itr.next().toString());
-    }
+    test.setFollowSet();
+    // HashSet<String> a = test.getFollowSet("personal-part");
+    // Iterator itr = a.iterator();
+    // while(itr.hasNext()) {
+    //   System.out.println(itr.next().toString());
+    // }
+
+    // HashMap<String, HashSet<String>> a = test.setFollowSet();
+    // Iterator iter = a.keySet().iterator();
+    // while(iter.hasNext()) {
+    //   String key = iter.next().toString();
+    //   System.out.println(key + " : ");
+    //   Iterator _itr = a.get(key).iterator();
+    //   while(_itr.hasNext()) {
+    //     System.out.print(_itr.next().toString() + " , ");
+    //   }
+    //   System.out.println();
+    // }
   }
 }

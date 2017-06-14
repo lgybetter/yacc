@@ -34,7 +34,8 @@ public class Yacc {
     private HashMap<String, Node> bnf = new HashMap();
     private HashMap<String, HashSet<String>> first = new HashMap();
     private HashMap<String, HashSet<String>> follow = new HashMap();
-
+    private HashSet<String> followToFind = new HashSet<>();
+    private String start = "";
     public Boolean isTerminator(String key) {
       if (this.bnf.containsKey(key)) {
         return false;
@@ -66,18 +67,74 @@ public class Yacc {
       return firstSet;
     }
 
-    // public HashMap<String, ArrayList<String>> setFollowSet() {
-
-    // }
-
     public HashMap<String, HashSet<String>> setFirstSet() {
       Iterator iter = this.bnf.keySet().iterator();
       while (iter.hasNext()) {
         String key = iter.next().toString();
-        HashSet<String> value = this.getFirstSet(key);
-        this.first.put(key, value);
+        if(!this.first.containsKey(key)) {
+          HashSet<String> value = this.getFirstSet(key);
+          this.first.put(key, value);
+        }
       }
       return this.first;
+    }
+
+
+    public HashSet<String> getFollowSet(String key) {
+      HashSet<String> followSet = new HashSet<>();
+      Iterator itr = this.bnf.keySet().iterator();
+      while(itr.hasNext()) {
+        String _key = itr.next().toString();
+        Node node = this.bnf.get(_key);
+        ArrayList<String[]> childs = node.getChilds();
+        for(int i = 0; i < childs.size(); i++) {
+          for(int j = 0; j < childs.get(i).length; j++) {
+            if(childs.get(i)[j].equals(key)) {
+              if(j < childs.get(i).length - 1) {
+                if(this.isTerminator(childs.get(i)[j+1])) {
+                  followSet.add(childs.get(i)[j+1]);
+                } else {
+                  HashSet<String> tempFollowSet = this.first.get(childs.get(i)[j+1]);
+                  Iterator _itr = tempFollowSet.iterator();
+                  while(_itr.hasNext()) {
+                    followSet.add(_itr.next().toString());
+                  }
+                }
+              } else {
+                if(!_key.equals(key)) {
+                  if(_key.equals(this.start)) {
+                    followSet.add("$");
+                  } else {
+                    HashSet<String> tempFollowSet = this.getFollowSet(_key);
+                    Iterator _itr = tempFollowSet.iterator();
+                    while(_itr.hasNext()) {
+                      followSet.add(_itr.next().toString());
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return followSet;
+    }
+
+    public HashMap<String, HashSet<String>> setFollowSet() {
+      Iterator iter = this.bnf.keySet().iterator();
+      HashSet<String> firstWorldFollowSet = new HashSet<>();
+      firstWorldFollowSet.add("$");
+      this.follow.put(this.start, firstWorldFollowSet);
+      while(iter.hasNext()) {
+        String key = iter.next().toString();
+        if(!this.follow.containsKey(key)) {
+          if(!key.equals(this.start)) {
+            HashSet<String> tempFollowSet = this.getFollowSet(key);
+            this.follow.put(key, tempFollowSet);
+          }
+        }
+      }
+      return this.follow;
     }
 
     public Analysis(String[] texts) {
@@ -85,6 +142,9 @@ public class Yacc {
         String[] splitArray = texts[i].replaceAll(" ", "").split("::=");
         Node node = new Node(splitArray[0].replaceAll("<|>", ""));
         node.split(splitArray[1]);
+        if(i == 0) {
+          this.start = splitArray[0].replaceAll("<|>", "");
+        }
         this.bnf.put(splitArray[0].replaceAll("<|>", ""), node);
       }
       // Iterator iter = this.bnf.keySet().iterator();
@@ -123,8 +183,8 @@ public class Yacc {
     //   }
     //   System.out.println();
     // }
-
-    HashSet<String> a = test.getFirstSet("postal-address");
+    test.setFirstSet();
+    HashSet<String> a = test.getFollowSet("personal-part");
     Iterator itr = a.iterator();
     while(itr.hasNext()) {
       System.out.println(itr.next().toString());

@@ -36,6 +36,7 @@ public class Yacc {
     private HashMap<String, HashSet<String>> follow = new HashMap();
     private HashSet<String> followToFind = new HashSet<>();
     private String start = "";
+    private ArrayList<String> mutilChoose = new ArrayList<>();
     public Boolean isTerminator(String key) {
       if (this.bnf.containsKey(key)) {
         return false;
@@ -46,6 +47,9 @@ public class Yacc {
     public HashSet<String> getFirstSet(String key) {
       Node node = this.bnf.get(key);
       ArrayList<String[]> childs = node.getChilds();
+      if (childs.size() > 1) {
+        this.mutilChoose.add(key);
+      }
       HashSet<String> firstSet = new HashSet<>();
       for (int i = 0; i < childs.size(); i++) {
         for (int j = 0; j < childs.get(i).length; j++) {
@@ -161,6 +165,59 @@ public class Yacc {
       //     System.out.println();
       //   }
       // }
+    }
+
+    public Boolean isLL1 () {
+      for(int i = 0; i < this.mutilChoose.size(); i ++) {
+        String key = this.mutilChoose.get(i);
+        ArrayList<HashSet<String>> arr = this.getMultiFirstSet(key);
+        for(int j = 0; j < arr.size(); j++) {
+          for(int z = j + 1; z < arr.size(); z++) {
+            HashSet<String> result = new HashSet<>();
+            result.addAll(arr.get(j));
+            result.retainAll(arr.get(z));
+            if(result.size() > 0) {
+              return false;
+            }
+          }
+        }
+        for(int j = 0; j < arr.size(); j++) {
+          if(arr.get(j).contains("ε")) {
+            HashSet<String> follow = this.follow.get(key);
+            for(int z = 0; z < arr.size(); z++) {
+              if (j != z) {
+                HashSet<String> result = new HashSet<>();
+                result.addAll(follow);
+                result.retainAll(arr.get(z));
+                if(result.size() > 0) {
+                  return false;
+                }
+              }
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    private ArrayList<HashSet<String>> getMultiFirstSet (String key) {
+      ArrayList<HashSet<String>> arr = new ArrayList<>();
+      Node node = this.bnf.get(key);
+      ArrayList<String []> childs = node.getChilds();
+      for(int i = 0; i < childs.size(); i ++) {
+        HashSet<String> set = new HashSet<>();
+        if (this.isTerminator(childs.get(i)[0])) {
+          set.add(childs.get(i)[0]);
+        } else {
+          HashSet<String> tempSet = this.first.get(childs.get(i)[0]);
+          Iterator itr = tempSet.iterator();
+          while(itr.hasNext()) {
+            set.add(itr.next().toString());
+          }
+        }
+        arr.add(set);
+      }
+      return arr;
     }
   }
 

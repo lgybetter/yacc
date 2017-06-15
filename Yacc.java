@@ -170,7 +170,14 @@ public class Yacc {
     public Boolean isLL1 () {
       for(int i = 0; i < this.mutilChoose.size(); i ++) {
         String key = this.mutilChoose.get(i);
+        System.out.println(key);
         ArrayList<HashSet<String>> arr = this.getMultiFirstSet(key);
+        for(int j = 0; j < arr.size(); j++) {
+          Iterator itr = arr.get(j).iterator();
+          while(itr.hasNext()) {
+            System.out.println(itr.next().toString());
+          }
+        }
         for(int j = 0; j < arr.size(); j++) {
           for(int z = j + 1; z < arr.size(); z++) {
             HashSet<String> result = new HashSet<>();
@@ -228,6 +235,11 @@ public class Yacc {
         "<street-address> ::= <house-num> <street-name> <opt-apt-num> <EOL>",
         "<zip-part> ::= <town-name> \",\" <state-code> <ZIP-code> <EOL>",
         "<opt-suffix-part> ::= \"Sr.\" | \"Jr.\" | <roman-numeral> | \"\"", "<opt-apt-num> ::= <apt-num> | \"\"" };
+    // String[] texts = {
+    //   "<a>::=\"2\"|<b>",
+    //   "<b>::=<c>|\"\"",
+    //   "<c>::=<1>"
+    // };
     Analysis test = new Analysis(texts);
     // HashMap<String, HashSet<String>> a = test.setFirstSet();
     // Iterator iter = a.keySet().iterator();
@@ -249,6 +261,7 @@ public class Yacc {
 
     test.setFirstSet();
     test.setFollowSet();
+    System.out.println(test.isLL1());
     // HashSet<String> a = test.getFollowSet("personal-part");
     // Iterator itr = a.iterator();
     // while(itr.hasNext()) {

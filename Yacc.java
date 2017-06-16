@@ -238,26 +238,21 @@ public class Yacc {
 
     private void insertLL1Table(String key, String key2, String[] value) {
       if (this.ll1Table.containsKey(key)) {
-        HashMap map1 = this.ll1Table.get(key);
-        if (map1.containsKey(key2)) {
-          HashMap<String, ArrayList<String []>> map2 = map1.get(key2);
-          ArrayList<String[]> tempList = map2.get(key2);
+        HashMap<String, ArrayList<String[]>> map = this.ll1Table.get(key);
+        if (map.containsKey(key2)) {
+          ArrayList<String[]> tempList = map.get(key2);
           tempList.add(value);
         } else {
-          HashMap<String, ArrayList<String[]>> map2 = new HashMap<>();
           ArrayList<String[]> tempList = new ArrayList<>();
           tempList.add(value);
-          map2.put(key2, tempList);
-          map1.put(key, map2);
+          map.put(key2, tempList);
         }
       } else {
-        HashMap<String, String[]> map1 = new HashMap<>();
-        HashMap<String, ArrayList<String[]>> map2 = new HashMap<>();
+        HashMap<String, ArrayList<String[]>> map = new HashMap<>();
         ArrayList<String[]> tempList = new ArrayList<>();
         tempList.add(value);
-        map2.put(key2, tempList);
-        map1.put(key, map2);
-        this.ll1Table.put(key, map1);
+        map.put(key2, tempList);
+        this.ll1Table.put(key, map);
       }
     }
 
@@ -316,6 +311,7 @@ public class Yacc {
     test.setFirstSet();
     test.setFollowSet();
     System.out.println(test.isLL1());
+    test.setLL1Table();
     // HashSet<String> a = test.getFollowSet("personal-part");
     // Iterator itr = a.iterator();
     // while(itr.hasNext()) {

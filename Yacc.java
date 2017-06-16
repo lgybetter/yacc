@@ -44,12 +44,16 @@ public class Yacc {
     private HashSet<String> notTerminator = new HashSet<>();
     private ArrayList<String> mutilChoose = new ArrayList<>();
     private HashMap<String, HashMap<String, ArrayList<String[]>>> ll1Table = new HashMap<>();
-
+    private HashMap<String, HashSet<String>> parent = new HashMap();
     public Boolean isTerminator(String key) {
       if (this.bnf.containsKey(key)) {
         return false;
       }
       return true;
+    }
+
+    public HashMap<String, HashSet<String>> getParent () {
+      return this.parent;
     }
 
     public HashSet<String> getFirstSet(String key) {
@@ -91,6 +95,16 @@ public class Yacc {
       return this.first;
     }
 
+    private void setParentSet (String key, String parent) {
+      if(this.parent.containsKey(key)) {
+        this.parent.get(key).add(parent);
+      } else {
+        HashSet<String> parentSet = new HashSet<>();
+        parentSet.add(parent);
+        this.parent.put(key, parentSet);
+      }
+    }
+
     public HashSet<String> getFollowSet(String key) {
       HashSet<String> followSet = new HashSet<>();
       Iterator itr = this.bnf.keySet().iterator();
@@ -100,6 +114,8 @@ public class Yacc {
         ArrayList<String[]> childs = node.getChilds();
         for (int i = 0; i < childs.size(); i++) {
           for (int j = 0; j < childs.get(i).length; j++) {
+            //设置能推出改childs.get(i)[j]的字符
+            this.setParentSet(childs.get(i)[j], _key);
             if (childs.get(i)[j].equals(key)) {
               if (j < childs.get(i).length - 1) {
                 if (this.isTerminator(childs.get(i)[j + 1])) {
@@ -138,12 +154,8 @@ public class Yacc {
       this.follow.put(this.start, firstWorldFollowSet);
       while (iter.hasNext()) {
         String key = iter.next().toString();
-        if (!this.follow.containsKey(key)) {
-          if (!key.equals(this.start)) {
-            HashSet<String> tempFollowSet = this.getFollowSet(key);
-            this.follow.put(key, tempFollowSet);
-          }
-        }
+        HashSet<String> tempFollowSet = this.getFollowSet(key);
+        this.follow.put(key, tempFollowSet);
       }
       return this.follow;
     }
@@ -215,7 +227,7 @@ public class Yacc {
       return true;
     }
 
-    public void setLL1Table() {
+    public HashMap<String, HashMap<String, ArrayList<String[]>>> setLL1Table() {
       Iterator itr = this.notTerminator.iterator();
       while (itr.hasNext()) {
         String key = itr.next().toString();
@@ -223,17 +235,53 @@ public class Yacc {
         ArrayList<String[]> childs = node.getChilds();
         for (int i = 0; i < childs.size(); i++) {
           if (this.isTerminator(childs.get(i)[0])) {
-            this.insertLL1Table(key, childs.get(i)[0], childs.get(i));
+            if(childs.get(i)[0].equals("ε")) {
+              HashSet<String> parentSet = this.parent.get(key);
+              Iterator _itr = parentSet.iterator();
+              while(_itr.hasNext()) {
+                String parentKey = _itr.next().toString();
+                HashSet<String> tempFollowSet = this.follow.get(parentKey);
+                Iterator __itr = tempFollowSet.iterator();
+                while(__itr.hasNext()) {
+                  String _key = __itr.next().toString();
+                  if(!_key.equals("ε")) {
+                    this.insertLL1Table(key, _key, childs.get(i));
+                  }
+                }
+              }
+            } else {
+              if(!childs.get(i)[0].equals("ε")) {
+                this.insertLL1Table(key, childs.get(i)[0], childs.get(i));
+              }
+            }
           } else {
             HashSet<String> tempFirstSet = this.first.get(childs.get(i)[0]);
-            Iterator _itr = tempFirstSet.iterator();
-            while (_itr.hasNext()) {
-              String tempKey = _itr.next().toString();
-              this.insertLL1Table(key, tempKey, childs.get(i));
+            if(tempFirstSet.contains("ε")) {
+              HashSet<String> parentSet = this.parent.get(key);
+              Iterator _itr = parentSet.iterator();
+              while(_itr.hasNext()) {
+                HashSet<String> tempFollowSet = this.follow.get(_itr.next().toString());
+                Iterator __itr = tempFollowSet.iterator();
+                while(__itr.hasNext()) {
+                  String _key = __itr.next().toString();
+                  if(_key.equals("ε")) {
+                    this.insertLL1Table(key, _key, childs.get(i));
+                  }
+                }
+              }
+            } else {
+              Iterator _itr = tempFirstSet.iterator();
+              while (_itr.hasNext()) {
+                String tempKey = _itr.next().toString();
+                if(tempKey.equals("ε")) {
+                  this.insertLL1Table(key, tempKey, childs.get(i));
+                }
+              }
             }
           }
         }
       }
+      return this.ll1Table;
     }
 
     private void insertLL1Table(String key, String key2, String[] value) {
@@ -278,17 +326,17 @@ public class Yacc {
   }
 
   public static void main(String[] args) {
-    String[] texts = { "<postal-address> ::= <name-part> <street-address> <zip-part>",
-        "<name-part> ::= <personal-part> <last-name> <opt-suffix-part> <EOL> | <personal-part> <name-part>",
-        "<personal-part> ::= <initial> \".\" | <first-name>",
-        "<street-address> ::= <house-num> <street-name> <opt-apt-num> <EOL>",
-        "<zip-part> ::= <town-name> \",\" <state-code> <ZIP-code> <EOL>",
-        "<opt-suffix-part> ::= \"Sr.\" | \"Jr.\" | <roman-numeral> | \"\"", "<opt-apt-num> ::= <apt-num> | \"\"" };
-    // String[] texts = {
-    //   "<a>::=\"2\"|<b>",
-    //   "<b>::=<c>|\"\"",
-    //   "<c>::=<1>"
-    // };
+    // String[] texts = { "<postal-address> ::= <name-part> <street-address> <zip-part>",
+    //     "<name-part> ::= <personal-part> <last-name> <opt-suffix-part> <EOL> | <personal-part> <name-part>",
+    //     "<personal-part> ::= <initial> \".\" | <first-name>",
+    //     "<street-address> ::= <house-num> <street-name> <opt-apt-num> <EOL>",
+    //     "<zip-part> ::= <town-name> \",\" <state-code> <ZIP-code> <EOL>",
+    //     "<opt-suffix-part> ::= \"Sr.\" | \"Jr.\" | <roman-numeral> | \"\"", "<opt-apt-num> ::= <apt-num> | \"\"" };
+    String[] texts = {
+      "<S>::=<i><E><t><S><S'>|<a>",
+      "<S'>::=<e><S>|\"\"",
+      "<E>::=<b>"
+    };
     Analysis test = new Analysis(texts);
     // HashMap<String, HashSet<String>> a = test.setFirstSet();
     // Iterator iter = a.keySet().iterator();
@@ -311,13 +359,31 @@ public class Yacc {
     test.setFirstSet();
     test.setFollowSet();
     System.out.println(test.isLL1());
-    test.setLL1Table();
+    HashMap<String, HashMap<String, ArrayList<String[]>>> ll1Table = test.setLL1Table();
+    Iterator itr = ll1Table.keySet().iterator();
+    while(itr.hasNext()) {
+      String key1 = itr.next().toString();
+      HashMap<String, ArrayList<String[]>> tempMap = ll1Table.get(key1);
+      Iterator _itr = tempMap.keySet().iterator();
+      while(_itr.hasNext()) {
+        String key2 = _itr.next().toString();
+        ArrayList<String []> list = tempMap.get(key2);
+        System.out.println("row: " + key1 + " => " + "column: " + key2);
+        for(int i = 0; i < list.size(); i++) {
+          for(int j = 0; j < list.get(i).length; j++) {
+            System.out.print(list.get(i)[j] + " ");
+          }
+          System.out.println();
+        }
+        // System.out.println();
+      }
+    }
     // HashSet<String> a = test.getFollowSet("personal-part");
     // Iterator itr = a.iterator();
     // while(itr.hasNext()) {
     //   System.out.println(itr.next().toString());
     // }
-
+    // System.out.println("-----------------------------------");
     // HashMap<String, HashSet<String>> a = test.setFollowSet();
     // Iterator iter = a.keySet().iterator();
     // while(iter.hasNext()) {

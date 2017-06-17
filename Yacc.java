@@ -323,6 +323,47 @@ public class Yacc {
       }
       return arr;
     }
+
+    public Boolean runTest (String [] texts) {
+      Stack<String> stack = new Stack<>();
+      stack.push("$");
+      stack.push(this.start);
+      String x = stack.firstElement().toString();
+      HashMap<String, ArrayList<String[]>> tempMap = null;
+      ArrayList<String[]> tempList = null;
+      int ip = 0;
+      while (!x.equals("$")) {
+        Boolean tableExist = true;
+        if(this.ll1Table.containsKey(x)) {
+          tempMap = this.ll1Table.get(x);
+          if(!tempMap.containsKey(texts[ip])) {
+            tableExist = false;
+          } else {
+            tempList = tempMap.get(texts[ip]);
+            if(tempList.size() > 1) {
+              tableExist = false;
+            }
+          }
+        } else {
+          tableExist = false;
+        }
+        if(x.equals(texts[ip])) {
+          stack.pop();
+          ip++;
+        } else if (this.isTerminator(x)) {
+          return false;
+        } else if (!tableExist) {
+          return false;
+        } else {
+          String[] tempArray = tempList.get(0);
+          for(int i = tempArray.length; i >= 0; i--) {
+            stack.push(tempArray[i]);
+          }
+        }
+        x = stack.firstElement().toString();
+      }
+      return true;
+    }
   }
 
   public static void main(String[] args) {
@@ -336,6 +377,11 @@ public class Yacc {
       "<S>::=<i><E><t><S><S'>|<a>",
       "<S'>::=<e><S>|\"\"",
       "<E>::=<b>"
+    };
+    String[] testText = {
+      "i",
+      "b",
+      "$"
     };
     Analysis test = new Analysis(texts);
     // HashMap<String, HashSet<String>> a = test.setFirstSet();
@@ -378,6 +424,7 @@ public class Yacc {
         // System.out.println();
       }
     }
+    System.out.println(test.runTest(testText));
     // HashSet<String> a = test.getFollowSet("personal-part");
     // Iterator itr = a.iterator();
     // while(itr.hasNext()) {

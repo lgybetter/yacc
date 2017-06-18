@@ -273,9 +273,7 @@ public class Yacc {
               Iterator _itr = tempFirstSet.iterator();
               while (_itr.hasNext()) {
                 String tempKey = _itr.next().toString();
-                if(tempKey.equals("ε")) {
-                  this.insertLL1Table(key, tempKey, childs.get(i));
-                }
+                this.insertLL1Table(key, tempKey, childs.get(i));
               }
             }
           }
@@ -375,12 +373,11 @@ public class Yacc {
     //     "<zip-part> ::= <town-name> \",\" <state-code> <ZIP-code> <EOL>",
     //     "<opt-suffix-part> ::= \"Sr.\" | \"Jr.\" | <roman-numeral> | \"\"", "<opt-apt-num> ::= <apt-num> | \"\"" };
     String[] texts = {
-      "<S>::=<i><E><t><S><S'>|<a>",
-      "<S'>::=<e><S>|\"\"",
+      "<S>::=<E>",
       "<E>::=<b>"
     };
     String[] testText = {
-      "a",
+      "b",
       "$"
     };
     Analysis test = new Analysis(texts);

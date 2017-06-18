@@ -328,7 +328,7 @@ public class Yacc {
       Stack<String> stack = new Stack<>();
       stack.push("$");
       stack.push(this.start);
-      String x = stack.firstElement().toString();
+      String x = stack.peek().toString();
       HashMap<String, ArrayList<String[]>> tempMap = null;
       ArrayList<String[]> tempList = null;
       int ip = 0;
@@ -355,12 +355,13 @@ public class Yacc {
         } else if (!tableExist) {
           return false;
         } else {
+          stack.pop();
           String[] tempArray = tempList.get(0);
-          for(int i = tempArray.length; i >= 0; i--) {
+          for(int i = tempArray.length -1 ; i >= 0; i--) {
             stack.push(tempArray[i]);
           }
         }
-        x = stack.firstElement().toString();
+        x = stack.peek().toString();
       }
       return true;
     }
@@ -379,8 +380,7 @@ public class Yacc {
       "<E>::=<b>"
     };
     String[] testText = {
-      "i",
-      "b",
+      "a",
       "$"
     };
     Analysis test = new Analysis(texts);
